@@ -1,0 +1,35 @@
+{
+  "name": "EcoSpark-Hub-Server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "lint": "eslint ./src/**/*",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "prisma": "^7.5.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.3.1",
+    "eslint": "^10.0.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0"
+  }
+}
