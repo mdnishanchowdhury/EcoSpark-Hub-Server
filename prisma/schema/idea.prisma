@@ -1,0 +1,27 @@
+model Idea {
+  id               String     @id @default(uuid())
+  title            String
+  problemStatement String
+  solution         String
+  description      String
+  images           String[]
+  isPaid           Boolean    @default(false)
+  price            Float?     @default(0)
+  status           IdeaStatus @default(UNDER_REVIEW)
+  feedback         String?
+
+  authorId String
+  author   User   @relation("UserIdeas", fields: [authorId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  votes      Vote[]
+  comments   Comment[]
+  purchasers PurchasedIdea[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("idea")
+}
