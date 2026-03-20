@@ -2,8 +2,12 @@ import express, { Application, Request, Response } from "express";
 import { IndexRoutes } from "./app/routes";
 import { AuthRoutes } from "./app/modules/auth/auth.route";
 import cookieParser from "cookie-parser";
+import path from "node:path";
 
 const app: Application = express();
+
+app.set("view engine", "ejs");
+app.set("views", path.resolve(process.cwd(), `src/app/templates`))
 
 // Enable URL-encoded form data parsing
 app.use(express.urlencoded({ extended: true }));
