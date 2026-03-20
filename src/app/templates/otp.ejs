@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>OTP Verification</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f4f6f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #4CAF50;
+      margin-bottom: 10px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .text {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .otp-box {
+      display: inline-block;
+      background: #f1f5f9;
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-size: 28px;
+      letter-spacing: 6px;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 20px;
+    }
+
+    .warning {
+      font-size: 12px;
+      color: #999;
+    }
+
+    .footer {
+      margin-top: 25px;
+      font-size: 12px;
+      color: #bbb;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    
+    <div class="logo">🌱 EcoSpark Hub</div>
+
+    <div class="title">Verify Your Email</div>
+
+    <div class="text">
+      Use the OTP code below to complete your verification.
+    </div>
+
+    <div class="otp-box">
+      <%= otp %>
+    </div>
+
+    <div class="warning">
+      This OTP is valid for a limited time. Do not share it with anyone.
+    </div>
+
+    <div class="footer">
+      © <%= new Date().getFullYear() %> EcoSpark Hub. All rights reserved.
+    </div>
+
+  </div>
+</body>
+</html>
