@@ -15,7 +15,7 @@ const createIdea = async (authorId: string, payload: Idea): Promise<Idea> => {
 const getAllIdeas = async (filters: any) => {
     const { searchTerm, categoryId, isPaid } = filters;
 
-    return await prisma.idea.findMany({
+    const ideas = await prisma.idea.findMany({
         where: {
             status: "APPROVED",
             ...(categoryId && { categoryId }),
@@ -30,9 +30,24 @@ const getAllIdeas = async (filters: any) => {
         include: {
             author: { select: { name: true, email: true, image: true } },
             category: true,
-            _count: { select: { votes: true } }
+            votes: true,
+            _count: { select: { comments: true } }
         },
         orderBy: { createdAt: 'desc' }
+    });
+
+    return ideas.map((idea) => {
+        const upVotes = idea.votes.filter(v => v.type === 'UPVOTE').length;
+        const downVotes = idea.votes.filter(v => v.type === 'DOWNVOTE').length;
+
+        const { votes, ...ideaData } = idea;
+
+        return {
+            ...ideaData,
+            upVotes,
+            downVotes,
+            totalVotes: upVotes + downVotes
+        };
     });
 };
 
@@ -40,9 +55,18 @@ const getIdeaById = async (id: string) => {
     const result = await prisma.idea.findUnique({
         where: { id },
         include: {
-            author: { select: { name: true, email: true } },
+            author: { select: { name: true, email: true, image: true } },
             category: true,
-            comments: { include: { user: { select: { name: true, image: true } } } }
+            comments: {
+                include: {
+                    user: { select: { name: true, image: true } }
+                },
+                orderBy: { createdAt: 'desc' }
+            },
+            votes: true,
+            _count: {
+                select: { comments: true }
+            }
         }
     });
 
@@ -50,23 +74,47 @@ const getIdeaById = async (id: string) => {
         throw new Error("Idea not found in our database!");
     }
 
-    return result;
+    const upVotes = result.votes.filter(v => v.type === 'UPVOTE').length;
+    const downVotes = result.votes.filter(v => v.type === 'DOWNVOTE').length;
+    const { votes, ...ideaData } = result;
+
+    return {
+        ...ideaData,
+        upVotes,
+        downVotes,
+        totalVotes: upVotes + downVotes
+    };
 };
 
 const getMyIdeas = async (authorId: string) => {
-    return await prisma.idea.findMany({
+    const ideas = await prisma.idea.findMany({
         where: {
             authorId: authorId,
         },
         include: {
             category: true,
+            votes: true,
             _count: {
-                select: { votes: true, comments: true }
+                select: { comments: true }
             }
         },
         orderBy: {
             createdAt: 'desc'
         }
+    });
+
+    return ideas.map((idea) => {
+        const upVotes = idea.votes.filter(v => v.type === 'UPVOTE').length;
+        const downVotes = idea.votes.filter(v => v.type === 'DOWNVOTE').length;
+
+        const { votes, ...ideaData } = idea;
+
+        return {
+            ...ideaData,
+            upVotes,
+            downVotes,
+            totalVotes: upVotes + downVotes
+        };
     });
 };
 
