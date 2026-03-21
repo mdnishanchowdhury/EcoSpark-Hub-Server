@@ -5,18 +5,9 @@ import { sendResponse } from "../../shared/sendResponse";
 import status from "http-status";
 import { tokenUtils } from "../../utils/token";
 import AppError from "../../../errorHelpers/AppError";
-import { Role } from "../../../generated/prisma/enums";
 import { CookieUtils } from "../../utils/cookie";
 import { envVars } from "../../config/env";
 import { auth } from "../../lib/auth";
-
-export interface IAuthRequest extends Request {
-    user?: {
-        userId: string;
-        role: Role;
-        email: string;
-    }
-}
 
 const registerMember = catchAsync(
     async (req: Request, res: Response) => {
@@ -85,7 +76,7 @@ const verifyEmail = catchAsync(
 )
 
 const getMe = catchAsync(
-    async (req: IAuthRequest, res: Response) => {
+    async (req: Request, res: Response) => {
         const user = req.user;
 
         if (!user) {
@@ -218,8 +209,8 @@ const googleLogin = catchAsync((req: Request, res: Response) => {
     const callbackURL = `${envVars.BETTER_AUTH_URL}/api/v1/auth/google/success?redirect=${encodedRedirectPath}`;
 
     res.render("googleRedirect", {
-        callbackURL : callbackURL,
-        betterAuthUrl : envVars.BETTER_AUTH_URL,
+        callbackURL: callbackURL,
+        betterAuthUrl: envVars.BETTER_AUTH_URL,
     })
 })
 

@@ -7,16 +7,9 @@ import { CookieUtils } from "../utils/cookie";
 import { jwtUtils } from "../utils/jwt";
 import AppError from "../../errorHelpers/AppError";
 
-interface IAuthRequest extends Request {
-    user?: {
-        userId: string;
-        role: Role;
-        email: string;
-    }
-}
 
 export const checkAuth = (...authRoles: Role[]) =>
-    async (req: IAuthRequest, res: Response, next: NextFunction) => {
+    async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sessionToken = CookieUtils.getCookie(req, "better-auth.session_token");
             const accessToken = CookieUtils.getCookie(req, 'accessToken');

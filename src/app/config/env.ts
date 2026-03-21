@@ -21,6 +21,7 @@ interface EnvConfig {
         SMTP_PORT: string;
         SMTP_FROM: string
     };
+    NODE_ENV:string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -43,6 +44,7 @@ const loadEnvVariables = (): EnvConfig => {
         'EMAIL_SENDER_SMTP_HOST',
         'EMAIL_SENDER_SMTP_PORT',
         'EMAIL_SENDER_SMTP_FROM',
+        'NODE_ENV',
 
     ]
 
@@ -71,6 +73,7 @@ const loadEnvVariables = (): EnvConfig => {
             SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
             SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
         },
+        NODE_ENV: process.env.NODE_ENV as string,
     }
 }
 export const envVars = loadEnvVariables();

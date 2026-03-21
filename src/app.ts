@@ -3,6 +3,8 @@ import { IndexRoutes } from "./app/routes";
 import { AuthRoutes } from "./app/modules/auth/auth.route";
 import cookieParser from "cookie-parser";
 import path from "node:path";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
+import { notFount } from "./app/middleware/notFound";
 
 const app: Application = express();
 
@@ -24,5 +26,8 @@ app.use("/api/v1", IndexRoutes);
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello, TypeScript + Express!');
 });
+
+app.use(globalErrorHandler);
+app.use(notFount)
 
 export default app;
