@@ -28,7 +28,6 @@ router.post("/",
 );
 
 // admin
-
 router.patch('/update-status/:id',
     validateRequest(updateIdeaStatusSchema),
     checkAuth(Role.ADMIN),

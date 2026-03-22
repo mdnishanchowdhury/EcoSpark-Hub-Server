@@ -31,6 +31,19 @@ const getAllIdeas = async (filters: any) => {
             author: { select: { name: true, email: true, image: true } },
             category: true,
             votes: true,
+            comments: {
+                where: { parentId: null },
+                include: {
+                    user: { select: { name: true, image: true } },
+                    replies: {
+                        include: {
+                            user: { select: { name: true, image: true } }
+                        },
+                        orderBy: { createdAt: 'asc' }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            },
             _count: { select: { comments: true } }
         },
         orderBy: { createdAt: 'desc' }
@@ -38,7 +51,7 @@ const getAllIdeas = async (filters: any) => {
 
     return ideas.map((idea) => {
         const upVotes = idea.votes.filter(v => v.type === 'UPVOTE').length;
-        const downVotes = idea.votes.filter(v => v.type === 'DOWNVOTE').length;
+        const downVotes = idea.votes.length - upVotes;
 
         const { votes, ...ideaData } = idea;
 
@@ -46,7 +59,7 @@ const getAllIdeas = async (filters: any) => {
             ...ideaData,
             upVotes,
             downVotes,
-            totalVotes: upVotes + downVotes
+            totalVotes: idea.votes.length
         };
     });
 };
@@ -55,34 +68,38 @@ const getIdeaById = async (id: string) => {
     const result = await prisma.idea.findUnique({
         where: { id },
         include: {
-            author: { select: { name: true, email: true, image: true } },
+            author: { select: { name: true, image: true } },
             category: true,
+            votes: true,
             comments: {
+                where: { parentId: null },
                 include: {
-                    user: { select: { name: true, image: true } }
+                    user: { select: { name: true, image: true } },
+                    replies: {
+                        include: {
+                            user: { select: { name: true, image: true } }
+                        },
+                        orderBy: { createdAt: 'asc' }
+                    }
                 },
                 orderBy: { createdAt: 'desc' }
             },
-            votes: true,
-            _count: {
-                select: { comments: true }
-            }
+            _count: { select: { comments: true } }
         }
     });
 
-    if (!result) {
-        throw new Error("Idea not found in our database!");
-    }
+    if (!result) throw new Error("Idea not found!");
 
     const upVotes = result.votes.filter(v => v.type === 'UPVOTE').length;
-    const downVotes = result.votes.filter(v => v.type === 'DOWNVOTE').length;
+    const downVotes = result.votes.length - upVotes;
+
     const { votes, ...ideaData } = result;
 
     return {
         ...ideaData,
         upVotes,
         downVotes,
-        totalVotes: upVotes + downVotes
+        totalVotes: result.votes.length
     };
 };
 
@@ -94,6 +111,19 @@ const getMyIdeas = async (authorId: string) => {
         include: {
             category: true,
             votes: true,
+            comments: {
+                where: { parentId: null },
+                include: {
+                    user: { select: { name: true, image: true } },
+                    replies: {
+                        include: {
+                            user: { select: { name: true, image: true } }
+                        },
+                        orderBy: { createdAt: 'asc' }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            },
             _count: {
                 select: { comments: true }
             }
@@ -105,15 +135,14 @@ const getMyIdeas = async (authorId: string) => {
 
     return ideas.map((idea) => {
         const upVotes = idea.votes.filter(v => v.type === 'UPVOTE').length;
-        const downVotes = idea.votes.filter(v => v.type === 'DOWNVOTE').length;
-
+        const downVotes = idea.votes.length - upVotes;
         const { votes, ...ideaData } = idea;
 
         return {
             ...ideaData,
             upVotes,
             downVotes,
-            totalVotes: upVotes + downVotes
+            totalVotes: idea.votes.length
         };
     });
 };
