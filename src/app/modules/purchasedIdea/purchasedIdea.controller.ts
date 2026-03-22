@@ -35,6 +35,19 @@ const handleStripeWebhookEvent = catchAsync(async (req: Request, res: Response) 
     });
 });
 
+const getSinglePurchasedIdeaByTransactionId = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await PurchasedIdeaService.getSinglePurchasedIdeaByTransactionId(id as string);
+
+    sendResponse(res, {
+        httpStatusCode: status.OK,
+        success: true,
+        message: "Purchased Idea details retrieved successfully",
+        data: result
+    });
+});
+
 export const purchasedIdeaController = {
-    handleStripeWebhookEvent
+    handleStripeWebhookEvent,
+    getSinglePurchasedIdeaByTransactionId
 };
