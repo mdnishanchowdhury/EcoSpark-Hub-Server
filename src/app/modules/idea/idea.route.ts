@@ -4,6 +4,7 @@ import { checkAuth } from "../../middleware/checkAuth";
 import { Role } from "../../../generated/prisma/client";
 import { validateRequest } from "../../middleware/validateRequest";
 import { createIdeaSchema, updateIdeaStatusSchema } from "./idea.validation";
+import { checkAuthOptional } from "../../middleware/checkAuthOptional";
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get(
     IdeaController.getMyIdeas
 );
 
-router.get("/", checkAuth(Role.MEMBER, Role.ADMIN), IdeaController.getAllIdeas);
+router.get("/",checkAuthOptional, IdeaController.getAllIdeas);
 
 router.post("/initiate-payment/:ideaId",
     checkAuth(Role.MEMBER, Role.ADMIN),
