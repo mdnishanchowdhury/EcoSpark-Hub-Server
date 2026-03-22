@@ -14,3 +14,10 @@ enum VoteType {
   UPVOTE
   DOWNVOTE
 }
+
+enum PaymentStatus {
+    PENDING
+    PAID
+    FAILED
+    CANCELLED
+}

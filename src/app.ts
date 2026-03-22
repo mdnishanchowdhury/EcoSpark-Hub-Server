@@ -7,18 +7,11 @@ import cors from "cors";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFount } from "./app/middleware/notFound";
 import { envVars } from "./app/config/env";
+import { purchasedIdeaController } from "./app/modules/purchasedIdea/purchasedIdea.controller";
 
 const app: Application = express();
 
-app.set("view engine", "ejs");
-app.set("views", path.resolve(process.cwd(), `src/app/templates`))
-
-// Enable URL-encoded form data parsing
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-app.use(cookieParser());
-
+// CORS Configuration
 app.use(cors({
     origin: [
         envVars.FRONTEND_URL,
@@ -29,14 +22,32 @@ app.use(cors({
     credentials: true,
 }));
 
+app.set("view engine", "ejs");
+app.set("views", path.resolve(process.cwd(), `src/app/templates`))
+
+
+// STRIPE WEBHOOK
+app.post(
+    "/webhook", 
+    express.raw({ type: "application/json" }), 
+    purchasedIdeaController.handleStripeWebhookEvent
+);
+
+// Regular Parsers
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(cookieParser());
+
+// Routes
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1", IndexRoutes);
 
-// Basic route
 app.get('/', (req: Request, res: Response) => {
     res.send('Hello, TypeScript + Express!');
 });
 
+// Error Handlers
 app.use(globalErrorHandler);
 app.use(notFount)
 

@@ -21,7 +21,11 @@ interface EnvConfig {
         SMTP_PORT: string;
         SMTP_FROM: string
     };
-    NODE_ENV:string;
+    NODE_ENV: string;
+    STRIPE: {
+        STRIPE_SECRET_KEY: string;
+        STRIPE_WEBHOOK_SECRET: string;
+    },
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -45,6 +49,8 @@ const loadEnvVariables = (): EnvConfig => {
         'EMAIL_SENDER_SMTP_PORT',
         'EMAIL_SENDER_SMTP_FROM',
         'NODE_ENV',
+        'STRIPE_SECRET_KEY',
+        'STRIPE_WEBHOOK_SECRET',
 
     ]
 
@@ -74,6 +80,11 @@ const loadEnvVariables = (): EnvConfig => {
             SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
         },
         NODE_ENV: process.env.NODE_ENV as string,
+        STRIPE: {
+            STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
+            STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET as string,
+        },
+
     }
 }
 export const envVars = loadEnvVariables();

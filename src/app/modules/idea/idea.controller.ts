@@ -16,7 +16,13 @@ const createIdea = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllIdeas = catchAsync(async (req: Request, res: Response) => {
-    const result = await IdeaService.getAllIdeas(req.query);
+    const filters = req.query;
+
+    const user = (req as any).user;
+    const userId = user?.userId || user?.id;
+
+    const result = await IdeaService.getAllIdeas(filters, userId);
+
     sendResponse(res, {
         httpStatusCode: 200,
         success: true,
@@ -37,9 +43,13 @@ const getMyIdeas = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+
 const getIdeaById = catchAsync(async (req: Request, res: Response) => {
-    const userId = req.params.id;
-    const result = await IdeaService.getIdeaById(userId as string);
+    const { id: ideaId } = req.params;
+    const user = (req as any).user;
+
+    const result = await IdeaService.getIdeaById(ideaId as string, user?.userId);
+
     sendResponse(res, {
         httpStatusCode: 200,
         success: true,
@@ -48,7 +58,21 @@ const getIdeaById = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-// admin
+const initiateIdeaPayment = catchAsync(async (req: Request, res: Response) => {
+    const { ideaId } = req.params;
+    const user = (req as any).user;
+
+    const result = await IdeaService.initiateIdeaPayment(ideaId as string, user.userId);
+
+    sendResponse(res, {
+        httpStatusCode: 200,
+        success: true,
+        message: "Payment initiation successful",
+        data: result,
+    });
+});
+
+// Admin Review
 const getPendingIdeasForAdmin = catchAsync(async (req: Request, res: Response) => {
     const result = await IdeaService.getPendingIdeasForAdmin();
 
@@ -74,12 +98,12 @@ const updateIdeaStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
-
 export const IdeaController = {
     createIdea,
     getAllIdeas,
     getMyIdeas,
     getIdeaById,
+    initiateIdeaPayment,
     getPendingIdeasForAdmin,
     updateIdeaStatus,
 };
