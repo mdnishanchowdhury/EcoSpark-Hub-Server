@@ -54,58 +54,90 @@ const registerMember = async (payload: IRegisterPayload) => {
 const loginMember = async (payload: ILoginPayload) => {
     const { email, password } = payload;
 
-    const data = await auth.api.signInEmail({
-        body: {
-            email,
-            password
+    try {
+        const data = await auth.api.signInEmail({
+            body: {
+                email,
+                password
+            }
+        });
+
+        if (!data.user.emailVerified) {
+            return {
+                ...data,
+                accessToken: null,
+                refreshToken: null,
+                isUnverified: true
+            };
         }
-    })
 
+        const tokenPayload = {
+            userId: data.user.id,
+            role: data.user.role,
+            name: data.user.name,
+            email: data.user.email,
+            emailVerified: data.user.emailVerified
+        };
 
-    // token 
-    const accessToken = tokenUtils.getAccessToken({
-        userId: data.user.id,
-        role: data.user.role,
-        name: data.user.name,
-        email: data.user.email,
-        emailVerified: data.user.emailVerified
-    })
+        const accessToken = tokenUtils.getAccessToken(tokenPayload);
+        const refreshToken = tokenUtils.getRefreshToken(tokenPayload);
 
-    const refreshToken = tokenUtils.getRefreshToken({
-        userId: data.user.id,
-        role: data.user.role,
-        name: data.user.name,
-        email: data.user.email,
-        emailVerified: data.user.emailVerified
-    })
+        return {
+            ...data,
+            accessToken,
+            refreshToken,
+            isUnverified: false
+        };
 
-    return {
-        ...data,
-        accessToken,
-        refreshToken
+    } catch (error: any) {
+        if (error.code === 'EMAIL_NOT_VERIFIED' || error.message?.includes("verified")) {
+            return {
+                user: { email },
+                isUnverified: true,
+                token: null,
+                accessToken: null,
+                refreshToken: null
+            };
+        }
+        throw error;
     }
 }
+
 
 const verifyEmail = async (email: string, otp: string) => {
-
     const result = await auth.api.verifyEmailOTP({
-        body: {
-            email,
-            otp,
-        }
-    })
+        body: { email, otp }
+    });
 
-    if (result.status && !result.user.emailVerified) {
-        await prisma.user.update({
-            where: {
-                email,
-            },
-            data: {
-                emailVerified: true,
-            }
-        })
+    if (!result.status) {
+        throw new Error("Invalid or expired OTP");
     }
-}
+
+    const updatedUser = await prisma.user.update({
+        where: { email },
+        data: { emailVerified: true }
+    });
+
+    const accessToken = tokenUtils.getAccessToken({
+        userId: updatedUser.id,
+        role: updatedUser.role,
+        name: updatedUser.name,
+        email: updatedUser.email
+    });
+
+    const refreshToken = tokenUtils.getRefreshToken({
+        userId: updatedUser.id,
+        role: updatedUser.role,
+        name: updatedUser.name,
+    });
+
+    return {
+        accessToken,
+        refreshToken,
+        token: accessToken,
+        user: updatedUser
+    };
+};
 
 const getMe = async (user: { userId: string, role: Role }) => {
     const isUserExists = await prisma.user.findUnique({
@@ -277,36 +309,31 @@ const resetPassword = async (email: string, otp: string, newPassword: string) =>
 };
 
 const getNewToken = async (refreshToken: string, sessionToken: string) => {
+    const verifiedRefreshToken = jwtUtils.verifyToken(refreshToken, envVars.REFRESH_TOKEN_SECRET);
 
-    const isSessionTokenExists = await prisma.session.findUnique({
-        where: {
-            token: sessionToken,
-        },
-        include: {
-            user: true,
-        }
-    })
-
-    if (!isSessionTokenExists) {
-        throw new AppError(status.UNAUTHORIZED, "Invalid session token");
-    }
-
-    const verifiedRefreshToken = jwtUtils.verifyToken(refreshToken, envVars.REFRESH_TOKEN_SECRET)
-
-
-    if (!verifiedRefreshToken.success && verifiedRefreshToken.error) {
+    if (!verifiedRefreshToken.success) {
         throw new AppError(status.UNAUTHORIZED, "Invalid refresh token");
     }
 
     const data = verifiedRefreshToken.data as JwtPayload;
+
+    const isSessionTokenExists = await prisma.session.findUnique({
+        where: { token: sessionToken },
+        include: { user: true }
+    });
+
+    if (!isSessionTokenExists) {
+        const user = await prisma.user.findUnique({ where: { id: data.userId } });
+        if (!user) {
+            throw new AppError(status.UNAUTHORIZED, "Session expired, please login again");
+        }
+    }
 
     const newAccessToken = tokenUtils.getAccessToken({
         userId: data.userId,
         role: data.role,
         name: data.name,
         email: data.email,
-        status: data.status,
-        isDeleted: data.isDeleted,
         emailVerified: data.emailVerified,
     });
 
@@ -315,39 +342,35 @@ const getNewToken = async (refreshToken: string, sessionToken: string) => {
         role: data.role,
         name: data.name,
         email: data.email,
-        status: data.status,
-        isDeleted: data.isDeleted,
         emailVerified: data.emailVerified,
     });
 
-    const { token } = await prisma.session.update({
-        where: {
-            token: sessionToken
-        },
-        data: {
-            token: sessionToken,
-            expiresAt: new Date(Date.now() + 60 * 60 * 60 * 24 * 1000),
-            updatedAt: new Date(),
-        }
-    })
+    let finalSessionToken = sessionToken;
+    if (isSessionTokenExists) {
+        const updatedSession = await prisma.session.update({
+            where: { token: sessionToken },
+            data: {
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+                updatedAt: new Date(),
+            }
+        });
+        finalSessionToken = updatedSession.token;
+    }
 
     return {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
-        sessionToken: token,
+        sessionToken: finalSessionToken,
     }
-
 };
+
 
 const googleLoginSuccess = async (session: Record<string, any>) => {
     const isUserExists = await prisma.user.findUnique({
-        where: {
-            id: session.user.id,
-        }
+        where: { id: session.user.id }
     });
 
-    if (!isUserExists) {
-    }
+    if (!isUserExists) { /* ... */ }
 
     const accessToken = tokenUtils.getAccessToken({
         userId: session.user.id,
@@ -365,8 +388,9 @@ const googleLoginSuccess = async (session: Record<string, any>) => {
     return {
         accessToken,
         refreshToken,
-    }
-}
+        user: session.user
+    };
+};
 
 export const AuthService = {
     registerMember,

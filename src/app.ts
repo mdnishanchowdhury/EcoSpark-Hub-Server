@@ -8,6 +8,8 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFount } from "./app/middleware/notFound";
 import { envVars } from "./app/config/env";
 import { purchasedIdeaController } from "./app/modules/purchasedIdea/purchasedIdea.controller";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./app/lib/auth";
 
 const app: Application = express();
 
@@ -28,8 +30,8 @@ app.set("views", path.resolve(process.cwd(), `src/app/templates`))
 
 // STRIPE WEBHOOK
 app.post(
-    "/webhook", 
-    express.raw({ type: "application/json" }), 
+    "/webhook",
+    express.raw({ type: "application/json" }),
     purchasedIdeaController.handleStripeWebhookEvent
 );
 
@@ -40,6 +42,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
+app.use("/api/auth", toNodeHandler(auth))
+
 app.use("/api/v1/auth", AuthRoutes);
 app.use("/api/v1", IndexRoutes);
 

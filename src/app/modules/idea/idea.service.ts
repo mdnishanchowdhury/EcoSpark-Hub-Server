@@ -37,6 +37,19 @@ const getAllIdeas = async (filters: any, userId?: string) => {
             author: { select: { name: true, email: true, image: true } },
             category: true,
             votes: true,
+               comments: {
+                where: { parentId: null },
+                include: {
+                    user: { select: { name: true, image: true } },
+                    replies: {
+                        include: {
+                            user: { select: { name: true, image: true } }
+                        },
+                        orderBy: { createdAt: 'asc' }
+                    }
+                },
+                orderBy: { createdAt: 'desc' }
+            },
             _count: { select: { comments: true } },
             purchasers: userId ? {
                 where: {
