@@ -10,5 +10,4 @@ router.post(
     checkAuth(Role.MEMBER, Role.ADMIN),
     VoteController.handleVote
 );
-
 export const VoteRoutes = router;

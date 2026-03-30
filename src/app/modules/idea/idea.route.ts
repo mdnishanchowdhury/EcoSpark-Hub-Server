@@ -5,6 +5,7 @@ import { Role } from "../../../generated/prisma/client";
 import { validateRequest } from "../../middleware/validateRequest";
 import { createIdeaSchema, updateIdeaStatusSchema } from "./idea.validation";
 import { checkAuthOptional } from "../../middleware/checkAuthOptional";
+import { multerUpload } from "../../config/multer.config";
 
 const router = Router();
 
@@ -19,15 +20,17 @@ router.get(
     IdeaController.getMyIdeas
 );
 
-router.get("/",checkAuthOptional, IdeaController.getAllIdeas);
+router.get("/", checkAuthOptional, IdeaController.getAllIdeas);
 
-router.post("/initiate-payment/:ideaId",
+router.post("/",
     checkAuth(Role.MEMBER, Role.ADMIN),
-    IdeaController.initiateIdeaPayment
+    multerUpload.array("images", 5),
+    validateRequest(createIdeaSchema),
+    IdeaController.createIdea
 );
 
 router.get("/:id",
-    checkAuth(Role.MEMBER, Role.ADMIN),
+    checkAuthOptional,
     IdeaController.getIdeaById
 );
 

@@ -23,6 +23,7 @@ export const auth = betterAuth({
         google: {
             clientId: envVars.GOOGLE_CLIENT_ID,
             clientSecret: envVars.GOOGLE_CLIENT_SECRET,
+            // callbackUrl: envVars.GOOGLE_CALLBACK_URL,
             mapProfileToUser: () => {
                 return {
                     role: Role.MEMBER,
@@ -144,10 +145,16 @@ export const auth = betterAuth({
         signIn: `${envVars.BETTER_AUTH_URL}/api/v1/auth/google/success`,
     },
 
-    trustedOrigins: [process.env.BETTER_AUTH_URL || "http://localhost:5000", envVars.FRONTEND_URL],
+    trustedOrigins: [
+        process.env.BETTER_AUTH_URL || "http://localhost:5000", 
+        envVars.FRONTEND_URL,
+        "https://eco-spark-hub-server-wine.vercel.app",
+        "https://ecospark-hub-client.vercel.app",
+        "http://localhost:3000"
+    ],
 
     advanced: {
-        useSecureCookies: false,
+        // useSecureCookies: true,
         cookies: {
             state: {
                 attributes: {

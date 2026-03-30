@@ -5,7 +5,6 @@ import { sendResponse } from "../../shared/sendResponse";
 
 const handleVote = catchAsync(async (req: Request, res: Response) => {
     const user = (req as any).user;
-
     const { ideaId, type } = req.body;
 
     const result = await VoteService.toggleVote(user.userId, ideaId, type);
@@ -13,7 +12,7 @@ const handleVote = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         httpStatusCode: 200,
         success: true,
-        message: "Vote updated successfully!",
+        message: result.message === "deleted" ? "Vote removed!" : "Vote recorded!",
         data: result,
     });
 });

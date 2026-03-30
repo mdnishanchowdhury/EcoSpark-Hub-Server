@@ -11,4 +11,16 @@ router.post(
     CommentController.createComment
 );
 
+router.patch(
+    "/:id",
+    checkAuth(Role.MEMBER, Role.ADMIN),
+    CommentController.updateComment
+);
+
+router.delete(
+    "/:id",
+    checkAuth(Role.MEMBER, Role.ADMIN),
+    CommentController.deleteComment
+);
+
 export const CommentRoutes = router;

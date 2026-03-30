@@ -105,7 +105,12 @@ const getMe = catchAsync(
         const user = req.user;
 
         if (!user) {
-            throw new AppError(status.UNAUTHORIZED, "Member not authenticated");
+            return sendResponse(res, {
+                httpStatusCode: status.OK,
+                success: true,
+                message: "Guest user - not authenticated",
+                data: null
+            });
         }
 
         const result = await AuthService.getMe(user);

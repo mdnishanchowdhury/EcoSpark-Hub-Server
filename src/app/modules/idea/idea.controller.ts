@@ -2,10 +2,27 @@ import { Request, Response } from "express";
 import { catchAsync } from "../../shared/catchAsnc";
 import { IdeaService } from "./idea.service";
 import { sendResponse } from "../../shared/sendResponse";
+import AppError from "../../../errorHelpers/AppError";
+import status from "http-status";
 
 const createIdea = catchAsync(async (req: Request, res: Response) => {
     const user = (req as any).user;
-    const result = await IdeaService.createIdea(user.userId, req.body);
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length < 2) {
+        throw new AppError(status.BAD_REQUEST, "Minimum 2 images are required");
+    }
+
+    const imageUrls = files.map(file => file.path);
+
+    const payload = {
+        ...req.body,
+        images: imageUrls,
+        price: req.body.price ? Number(req.body.price) : 0,
+        isPaid: req.body.isPaid === 'true' || Number(req.body.price) > 0
+    };
+
+    const result = await IdeaService.createIdea(user.userId, payload);
 
     sendResponse(res, {
         httpStatusCode: 201,

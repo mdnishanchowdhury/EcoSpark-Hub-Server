@@ -4,10 +4,9 @@ import { stripe } from "../../config/stripe.config";
 import { envVars } from "../../config/env";
 import { v7 as uuidv7 } from "uuid";
 import AppError from "../../../errorHelpers/AppError";
-import status from "http-status";
 
 const createIdea = async (authorId: string, payload: Idea): Promise<Idea> => {
-    return await prisma.idea.create({
+    const result = await prisma.idea.create({
         data: {
             ...payload,
             authorId,
@@ -16,6 +15,7 @@ const createIdea = async (authorId: string, payload: Idea): Promise<Idea> => {
             status: IdeaStatus.UNDER_REVIEW,
         },
     });
+    return result;
 };
 
 const getAllIdeas = async (filters: any, userId?: string) => {
@@ -37,7 +37,7 @@ const getAllIdeas = async (filters: any, userId?: string) => {
             author: { select: { name: true, email: true, image: true } },
             category: true,
             votes: true,
-               comments: {
+            comments: {
                 where: { parentId: null },
                 include: {
                     user: { select: { name: true, image: true } },
@@ -68,13 +68,14 @@ const getAllIdeas = async (filters: any, userId?: string) => {
 
         const shouldHide = idea.isPaid && !isAuthor && !hasPurchased;
 
-        const { votes, purchasers, ...ideaData } = idea;
+        const { purchasers, votes, ...ideaData } = idea;
 
         const upVotes = votes.filter((v: any) => v.type === 'UPVOTE').length;
         const downVotes = votes.length - upVotes;
 
         return {
             ...ideaData,
+            votes: votes,
             description: shouldHide
                 ? `${idea.description?.substring(0, 100)}... (Buy to see more)`
                 : idea.description,
@@ -163,7 +164,15 @@ const getIdeaById = async (id: string, userId?: string, userRole?: string) => {
                 include: {
                     user: { select: { name: true, image: true } },
                     replies: {
-                        include: { user: { select: { name: true, image: true } } },
+                        include: {
+                            user: { select: { name: true, image: true } },
+                            replies: {
+                                include: {
+                                    user: { select: { name: true, image: true } },
+                                    replies: true
+                                }
+                            }
+                        },
                         orderBy: { createdAt: 'asc' }
                     }
                 },
@@ -174,26 +183,25 @@ const getIdeaById = async (id: string, userId?: string, userRole?: string) => {
     });
 
     if (!result) {
-        throw new AppError(status.NOT_FOUND, "Idea not found!");
+        throw new AppError(404, "Idea not found!");
     }
 
     const idea = result as any;
-
     const isAuthor = userId && idea.authorId === userId;
-
     const isAdmin = userRole === 'ADMIN';
-
-    const hasPurchased = idea.purchasers && idea.purchasers.length > 0;
-
+    const hasPurchased = (idea.purchasers && idea.purchasers.length > 0);
     const shouldHide = idea.isPaid && !isAuthor && !hasPurchased && !isAdmin;
 
-    const upVotes = idea.votes.filter((v: any) => v.type === 'UPVOTE').length;
-    const downVotes = idea.votes.length - upVotes;
+    const votesArray = idea.votes || [];
+    const upVotes = votesArray.filter((v: any) => v.type === 'UPVOTE').length;
+    const totalVotes = votesArray.length;
+    const downVotes = totalVotes - upVotes;
 
     const { purchasers, votes, ...ideaData } = idea;
 
     return {
         ...ideaData,
+        votes: votesArray,
         description: shouldHide
             ? `${idea.description?.substring(0, 150)}... (Buy to see more)`
             : idea.description,
@@ -204,7 +212,7 @@ const getIdeaById = async (id: string, userId?: string, userRole?: string) => {
         isLocked: shouldHide,
         upVotes,
         downVotes,
-        totalVotes: votes.length
+        totalVotes
     };
 };
 

@@ -49,6 +49,7 @@ export const checkAuthOptional = async (req: Request, res: Response, next: NextF
 
         next();
     } catch (error: any) {
+        console.error("Optional Auth Error:", error.message);
         next();
     }
 };
