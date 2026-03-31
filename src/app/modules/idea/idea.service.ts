@@ -1,4 +1,4 @@
-import { Idea, IdeaStatus } from "../../../generated/prisma/client";
+import { Idea, IdeaStatus, Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { stripe } from "../../config/stripe.config";
 import { envVars } from "../../config/env";
@@ -18,77 +18,75 @@ const createIdea = async (authorId: string, payload: Idea): Promise<Idea> => {
     return result;
 };
 
+
 const getAllIdeas = async (filters: any, userId?: string) => {
-    const { searchTerm, categoryId, isPaid } = filters;
+    const { searchTerm, categoryId, isPaid, page = 1, limit = 9 } = filters;
 
-    const ideas = await prisma.idea.findMany({
-        where: {
-            status: "APPROVED",
-            ...(categoryId && { categoryId }),
-            ...(isPaid !== undefined && { isPaid: isPaid === 'true' }),
-            ...(searchTerm && {
-                OR: [
-                    { title: { contains: searchTerm, mode: 'insensitive' } },
-                    { description: { contains: searchTerm, mode: 'insensitive' } },
-                ],
-            }),
-        },
-        include: {
-            author: { select: { name: true, email: true, image: true } },
-            category: true,
-            votes: true,
-            comments: {
-                where: { parentId: null },
-                include: {
-                    user: { select: { name: true, image: true } },
-                    replies: {
-                        include: {
-                            user: { select: { name: true, image: true } }
-                        },
-                        orderBy: { createdAt: 'asc' }
-                    }
-                },
-                orderBy: { createdAt: 'desc' }
+    const skip = (Number(page) - 1) * Number(limit);
+    const take = Number(limit);
+
+    const whereCondition: Prisma.IdeaWhereInput = {
+        status: "APPROVED",
+
+        ...(categoryId && categoryId !== "" && categoryId !== "all" && { categoryId }),
+
+        ...(isPaid !== undefined && isPaid !== "" && {
+            isPaid: isPaid === 'true' || isPaid === true
+        }),
+
+        ...(searchTerm && {
+            OR: [
+                { title: { contains: searchTerm, mode: 'insensitive' } },
+                { description: { contains: searchTerm, mode: 'insensitive' } },
+                { author: { name: { contains: searchTerm, mode: 'insensitive' } } }
+            ],
+        }),
+    };
+
+    const [ideas, totalCount] = await Promise.all([
+        prisma.idea.findMany({
+            where: whereCondition,
+            skip,
+            take,
+            include: {
+                author: { select: { name: true, email: true, image: true } },
+                category: true,
+                votes: true,
+                _count: { select: { comments: true } },
+                purchasers: userId ? { where: { userId, status: 'PAID' } } : false,
             },
-            _count: { select: { comments: true } },
-            purchasers: userId ? {
-                where: {
-                    userId: userId,
-                    status: 'PAID'
-                }
-            } : false,
-        },
-        orderBy: { createdAt: 'desc' }
-    });
+            orderBy: { createdAt: 'desc' }
+        }),
+        prisma.idea.count({ where: whereCondition })
+    ]);
 
-    return ideas.map((idea: any) => {
+    // formattedIdeas mapping logic...
+    const formattedIdeas = ideas.map((idea: any) => {
         const isAuthor = userId && idea.authorId === userId;
-
         const hasPurchased = idea.purchasers && idea.purchasers.length > 0;
-
         const shouldHide = idea.isPaid && !isAuthor && !hasPurchased;
 
-        const { purchasers, votes, ...ideaData } = idea;
-
-        const upVotes = votes.filter((v: any) => v.type === 'UPVOTE').length;
-        const downVotes = votes.length - upVotes;
+        const upVotes = idea.votes.filter((v: any) => v.type === 'UPVOTE').length;
+        const downVotes = idea.votes.length - upVotes;
 
         return {
-            ...ideaData,
-            votes: votes,
-            description: shouldHide
-                ? `${idea.description?.substring(0, 100)}... (Buy to see more)`
-                : idea.description,
-            solution: shouldHide ? "Locked" : idea.solution,
-            problemStatement: shouldHide
-                ? `${idea.problemStatement?.substring(0, 50)}...`
-                : idea.problemStatement,
+            ...idea,
+            description: shouldHide ? `${idea.description?.substring(0, 80)}...` : idea.description,
+            isLocked: shouldHide,
             upVotes,
             downVotes,
-            totalVotes: votes.length,
-            isLocked: shouldHide
         };
     });
+
+    return {
+        meta: {
+            page: Number(page),
+            limit: Number(limit),
+            total: totalCount,
+            totalPage: Math.ceil(totalCount / limit)
+        },
+        data: formattedIdeas
+    };
 };
 
 const initiateIdeaPayment = async (ideaId: string, userId: string) => {
@@ -281,7 +279,7 @@ const updateIdea = async (id: string, userId: string, role: string, payload: any
         where: { id },
         data: {
             ...payload,
-            status: role === 'ADMIN' ? idea.status : 'UNDER_REVIEW' 
+            status: role === 'ADMIN' ? idea.status : 'UNDER_REVIEW'
         }
     });
 
