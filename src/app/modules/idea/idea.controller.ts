@@ -115,6 +115,44 @@ const updateIdeaStatus = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const updateIdea = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const user = (req as any).user;
+    const files = req.files as Express.Multer.File[];
+
+    let payload = { ...req.body };
+
+    if (files && files.length > 0) {
+        const imageUrls = files.map(file => file.path);
+        payload.images = imageUrls;
+    }
+
+    if (payload.price) payload.price = Number(payload.price);
+    if (payload.isPaid) payload.isPaid = payload.isPaid === 'true';
+
+    const result = await IdeaService.updateIdea(id as string, user.userId, user.role, payload);
+
+    sendResponse(res, {
+        httpStatusCode: 200,
+        success: true,
+        message: "Idea updated successfully!",
+        data: result,
+    });
+});
+
+const deleteIdea = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const user = (req as any).user;
+
+    await IdeaService.deleteIdea(id as string, user.userId, user.role);
+
+    sendResponse(res, {
+        httpStatusCode: 200,
+        success: true,
+        message: "Idea deleted successfully!",
+    });
+});
+
 export const IdeaController = {
     createIdea,
     getAllIdeas,
@@ -123,4 +161,6 @@ export const IdeaController = {
     initiateIdeaPayment,
     getPendingIdeasForAdmin,
     updateIdeaStatus,
+    updateIdea,
+    deleteIdea
 };

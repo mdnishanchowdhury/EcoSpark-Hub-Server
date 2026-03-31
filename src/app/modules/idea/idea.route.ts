@@ -41,9 +41,27 @@ router.post("/",
 );
 
 router.patch('/update-status/:id',
-    validateRequest(updateIdeaStatusSchema),
+    // validateRequest(updateIdeaStatusSchema),
     checkAuth(Role.ADMIN),
     IdeaController.updateIdeaStatus
 );
+
+router.post("/initiate-payment/:ideaId",
+    checkAuth(Role.MEMBER, Role.ADMIN),
+    IdeaController.initiateIdeaPayment
+);
+
+router.patch("/edit/:id",
+    checkAuth(Role.MEMBER, Role.ADMIN),
+    multerUpload.array("images", 5),
+    // validateRequest(updateIdeaSchema), 
+    IdeaController.updateIdea
+);
+
+router.delete("/:id",
+    checkAuth(Role.MEMBER, Role.ADMIN),
+    IdeaController.deleteIdea
+);
+
 
 export const IdeaRoutes = router;

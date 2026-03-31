@@ -268,6 +268,42 @@ const updateIdeaStatus = async (id: string, status: IdeaStatus, feedback?: strin
     });
 };
 
+const updateIdea = async (id: string, userId: string, role: string, payload: any) => {
+    const idea = await prisma.idea.findUnique({ where: { id } });
+
+    if (!idea) throw new AppError(404, "Idea not found!");
+
+    if (idea.authorId !== userId && role !== 'ADMIN') {
+        throw new AppError(403, "You are not authorized to update this idea!");
+    }
+
+    const result = await prisma.idea.update({
+        where: { id },
+        data: {
+            ...payload,
+            status: role === 'ADMIN' ? idea.status : 'UNDER_REVIEW' 
+        }
+    });
+
+    return result;
+};
+
+const deleteIdea = async (id: string, userId: string, role: string) => {
+    const idea = await prisma.idea.findUnique({ where: { id } });
+
+    if (!idea) throw new AppError(404, "Idea not found!");
+
+    if (idea.authorId !== userId && role !== 'ADMIN') {
+        throw new AppError(403, "You are not authorized to delete this idea!");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+        await tx.vote.deleteMany({ where: { ideaId: id } });
+        await tx.comment.deleteMany({ where: { ideaId: id } });
+        return await tx.idea.delete({ where: { id } });
+    });
+};
+
 export const IdeaService = {
     createIdea,
     getAllIdeas,
@@ -276,5 +312,7 @@ export const IdeaService = {
     cancelUnpaidPurchases,
     getMyIdeas,
     getPendingIdeasForAdmin,
-    updateIdeaStatus
+    updateIdeaStatus,
+    updateIdea,
+    deleteIdea
 };

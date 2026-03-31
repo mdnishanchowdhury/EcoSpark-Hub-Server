@@ -10,6 +10,11 @@ const router = Router();
 router.post('/', checkAuth(Role.ADMIN), validateRequest(createCategorySchema), CategoryController.createCategory);
 router.get('/', CategoryController.getAllCategory);
 router.get('/:id', CategoryController.getCategoryById);
+router.patch(
+    '/:id', 
+    checkAuth(Role.ADMIN),
+    CategoryController.updateCategory
+);
 router.delete('/:id', checkAuth(Role.ADMIN), CategoryController.deleteCategory);
 
 export const CategoryRoutes = router;

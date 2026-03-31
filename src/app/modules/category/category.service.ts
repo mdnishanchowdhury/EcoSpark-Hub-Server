@@ -33,6 +33,33 @@ const getCategoryById = async (id: string) => {
     return category;
 }
 
+const updateCategory = async (id: string, payload: { name: string }): Promise<Category> => {
+    const isExist = await prisma.category.findUnique({
+        where: { id }
+    });
+
+    if (!isExist) {
+        throw new AppError(404, "Category not found");
+    }
+
+    const duplicateCategory = await prisma.category.findFirst({
+        where: {
+            name: payload.name,
+            id: { not: id }
+        }
+    });
+
+    if (duplicateCategory) {
+        throw new AppError(400, "Category with this name already exists");
+    }
+    const result = await prisma.category.update({
+        where: { id },
+        data: payload
+    });
+
+    return result;
+}
+
 const deleteCategory = async (id: string): Promise<Category> => {
     const category = await prisma.category.delete({
         where: { id }
@@ -44,5 +71,6 @@ export const CategoryService = {
     createCategory,
     getAllCategory,
     deleteCategory,
+    updateCategory,
     getCategoryById
 }
