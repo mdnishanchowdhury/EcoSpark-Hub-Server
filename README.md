@@ -9,13 +9,13 @@ Server API: [https://eco-spark-hub-server-wine.vercel.app]
 Client Application: [https://ecospark-hub-client.vercel.app]
 ```
 ## ✨ Features
-# Secure Authentication: Powered by Better-Auth for seamless and secure user sessions.
-# Database Management: Type-safe database queries using Prisma ORM with a PostgreSQL adapter.
-# Payment Processing: Integrated Stripe for handling transactions and subscriptions, including webhook support.
-# Media Handling: Image uploads managed via Multer and stored securely on Cloudinary.
-# Communication: Email notifications and alerts implemented with Nnodemailer.
-# PDF Generation: Automated document and report creation using PDFKit.
-# Data Validation: Strict schema validation using Zod to ensure API integrity.
+Secure Authentication: Powered by Better-Auth for seamless and secure user sessions.
+Database Management: Type-safe database queries using Prisma ORM with a PostgreSQL adapter.
+Payment Processing: Integrated Stripe for handling transactions and subscriptions, including webhook support.
+Media Handling: Image uploads managed via Multer and stored securely on Cloudinary.
+Communication: Email notifications and alerts implemented with Nnodemailer.
+PDF Generation: Automated document and report creation using PDFKit.
+Data Validation: Strict schema validation using Zod to ensure API integrity.
 
 ## 🛠 Technologies Used
 Runtime: Node.js (v20+)
@@ -42,46 +42,53 @@ Bash
 pnpm install
 ```
 ## 3. Environment Configuration:
-
-# Server Configuration
+```text
+Server Configuration
 PORT=5000
 FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
-
-# Database (PostgreSQL)
+```
+```text
+Database (PostgreSQL)
 DATABASE_URL="your_postgresql_connection_string"
-
-# Better-Auth Configuration
+```
+```text
+Better-Auth Configuration
 BETTER_AUTH_SECRET=your_auth_secret
 BETTER_AUTH_URL=http://localhost:5000
-
-# JWT Secrets
+```
+```
+JWT Secrets
 ACCESS_TOKEN_SECRET=your_access_token_secret
 REFRESH_TOKEN_SECRET=your_refresh_token_secret
 ACCESS_TOKEN_EXPIRES_IN=15m
 REFRESH_TOKEN_EXPIRES_IN=7d
-
-# Google OAuth
+```
+```text
+Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/callback/google
-
-# Email Service (Nodemailer)
+```
+```text
+Email Service (Nodemailer)
 EMAIL_SENDER_SMTP_USER=your_email@example.com
 EMAIL_SENDER_SMTP_PASS=your_app_password
 EMAIL_SENDER_SMTP_HOST=smtp.gmail.com
 EMAIL_SENDER_SMTP_PORT=587
 EMAIL_SENDER_SMTP_FROM=noreply@ecosparkhub.com
-
-# Payments (Stripe)
+```
+```text
+Payments (Stripe)
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
-
-# Storage (Cloudinary)
+```
+```text
+Storage (Cloudinary)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
-
+```
 
 # Add other necessary keys for Better-Auth, Nodemailer, etc.
 
