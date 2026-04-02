@@ -214,6 +214,77 @@ const getIdeaById = async (id: string, userId?: string, userRole?: string) => {
     };
 };
 
+const getAllIdeasMenu = async (filters: any, userId?: string) => {
+    const {
+        searchTerm,
+        categoryId,
+        isFree
+    } = filters;
+
+    const whereCondition: Prisma.IdeaWhereInput = {
+        status: "APPROVED",
+
+        ...(categoryId && categoryId !== "" && categoryId !== "all" && { categoryId }),
+
+        ...(isFree !== undefined && isFree !== "" && {
+            isPaid: isFree === 'false' || isFree === false
+        }),
+
+        ...(searchTerm && {
+            OR: [
+                { title: { contains: searchTerm, mode: 'insensitive' } },
+                { description: { contains: searchTerm, mode: 'insensitive' } },
+                { author: { name: { contains: searchTerm, mode: 'insensitive' } } }
+            ],
+        }),
+    };
+
+    try {
+        const ideas = await prisma.idea.findMany({
+            where: whereCondition,
+            include: {
+                author: { select: { id: true, name: true, email: true, image: true } },
+                category: true,
+                votes: true,
+                _count: { select: { comments: true } },
+                purchasers: userId ? { where: { userId, status: 'PAID' } } : false,
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        const formattedIdeas = ideas.map((idea: any) => {
+            const isAuthor = userId && idea.authorId === userId;
+            const hasPurchased = idea.purchasers && idea.purchasers.length > 0;
+            const shouldHide = idea.isPaid && !isAuthor && !hasPurchased;
+
+            const upVotes = idea.votes.filter((v: any) => v.type === 'UPVOTE').length;
+            const totalVotes = idea.votes.length;
+            const downVotes = totalVotes - upVotes;
+
+            return {
+                ...idea,
+                description: shouldHide
+                    ? `${idea.description?.substring(0, 80)}...`
+                    : idea.description,
+                isLocked: shouldHide,
+                upVotes,
+                downVotes,
+                totalVotes,
+            };
+        });
+
+        return {
+            meta: {
+                total: formattedIdeas.length,
+            },
+            data: formattedIdeas
+        };
+    } catch (error) {
+        console.error("Error in getAllIdeasMenu:", error);
+        throw new AppError(500, "Failed to load the ideas menu. Please try again later.");
+    }
+};
+
 const cancelUnpaidPurchases = async () => {
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
@@ -302,6 +373,7 @@ const deleteIdea = async (id: string, userId: string, role: string) => {
     });
 };
 
+
 export const IdeaService = {
     createIdea,
     getAllIdeas,
@@ -312,5 +384,6 @@ export const IdeaService = {
     getPendingIdeasForAdmin,
     updateIdeaStatus,
     updateIdea,
-    deleteIdea
+    deleteIdea,
+    getAllIdeasMenu
 };

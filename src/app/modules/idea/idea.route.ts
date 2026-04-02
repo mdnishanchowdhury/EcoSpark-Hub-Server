@@ -9,6 +9,11 @@ import { multerUpload } from "../../config/multer.config";
 
 const router = Router();
 
+router.get("/all-menu", 
+    checkAuthOptional,
+    IdeaController.getAllIdeasMenu
+);
+
 router.get("/pending-ideas",
     checkAuth(Role.ADMIN),
     IdeaController.getPendingIdeasForAdmin
@@ -62,6 +67,7 @@ router.delete("/:id",
     checkAuth(Role.MEMBER, Role.ADMIN),
     IdeaController.deleteIdea
 );
+
 
 
 export const IdeaRoutes = router;

@@ -153,6 +153,23 @@ const deleteIdea = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+
+const getAllIdeasMenu = catchAsync(async (req: Request, res: Response) => {
+    const filters = req.query; 
+
+    const user = (req as any).user;
+    const userId = user?.userId || user?.id;
+
+    const result = await IdeaService.getAllIdeas(filters, userId);
+
+    sendResponse(res, {
+        httpStatusCode: 200,
+        success: true,
+        message: "Ideas fetched successfully",
+        data: result,
+    });
+});
+
 export const IdeaController = {
     createIdea,
     getAllIdeas,
@@ -162,5 +179,6 @@ export const IdeaController = {
     getPendingIdeasForAdmin,
     updateIdeaStatus,
     updateIdea,
-    deleteIdea
+    deleteIdea,
+    getAllIdeasMenu
 };
