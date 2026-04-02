@@ -7,7 +7,6 @@ import { checkAuthOptional } from "../../middleware/checkAuthOptional";
 const router = Router();
 
 router.get("/me", checkAuthOptional, AuthController.getMe);
-
 router.post("/register", AuthController.registerMember)
 router.post("/login", AuthController.loginMember)
 
@@ -15,7 +14,6 @@ router.post("/change-password", checkAuth(Role.ADMIN, Role.MEMBER), AuthControll
 
 router.post("/verify-email", AuthController.verifyEmail);
 router.post("/logout", checkAuth(Role.ADMIN, Role.MEMBER), AuthController.logoutUser)
-
 
 router.post("/forget-password", AuthController.forgetPassword);
 router.post("/reset-password", AuthController.resetPassword);
