@@ -18,7 +18,7 @@ PDF Generation: Automated document and report creation using PDFKit.
 Data Validation: Strict schema validation using Zod to ensure API integrity.
 
 ## 🛠 Technologies Used
-Runtime: Node.js (v20+)
+* Runtime: Node.js (v20+)
 Framework: Express.js (v5)
 Language: TypeScript
 Database: PostgreSQL & Prisma ORM
