@@ -19,13 +19,13 @@ Data Validation: Strict schema validation using Zod to ensure API integrity.
 
 ## 🛠 Technologies Used
 * Runtime: Node.js (v20+)
-Framework: Express.js (v5)
-Language: TypeScript
-Database: PostgreSQL & Prisma ORM
-Authentication: Better-Auth & JSON Web Tokens (JWT)
-Payments: Stripe API
-Storage: Cloudinary
-Bundler: tsup
+* Framework: Express.js (v5)
+* Language: TypeScript
+* Database: PostgreSQL & Prisma ORM
+* Authentication: Better-Auth & JSON Web Tokens (JWT)
+* Payments: Stripe API
+* Storage: Cloudinary
+* Bundler: tsup
 
 ## ⚙️ Setup Instructions
 Follow these steps to set up the project locally:
