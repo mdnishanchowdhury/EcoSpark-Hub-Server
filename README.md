@@ -3,11 +3,9 @@ EcoSpark-Hub Server
 This is the backend service for EcoSpark-Hub, a platform dedicated to eco-friendly innovations and community sustainability. It provides a robust API for managing community ideas, handling secure authentication, and processing payments for sustainability initiatives.
 
 ## 🚀 Live Links
-```text
-Server API: [https://eco-spark-hub-server-wine.vercel.app]
+* **Frontend Application:** [https://ecospark-hub-client.vercel.app](https://ecospark-hub-client.vercel.app)
+* **Backend API:** [https://eco-spark-hub-server-wine.vercel.app](https://eco-spark-hub-server-wine.vercel.app)
 
-Client Application: [https://ecospark-hub-client.vercel.app]
-```
 ## ✨ Features
 Secure Authentication: Powered by Better-Auth for seamless and secure user sessions.
 Database Management: Type-safe database queries using Prisma ORM with a PostgreSQL adapter.
